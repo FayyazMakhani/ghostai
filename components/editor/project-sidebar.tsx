@@ -5,11 +5,15 @@ import { Plus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+/** Props for {@link ProjectSidebar}. */
 interface ProjectSidebarProps {
+  /** Whether the sidebar is visible. */
   isOpen: boolean
+  /** Called when the user clicks the close button. */
   onClose: () => void
 }
 
+/** Floating project navigation sidebar that overlays the editor canvas without pushing content. */
 export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
   return (
     <aside
