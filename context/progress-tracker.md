@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 01: Design System — Complete
+- Feature 02: Editor Chrome — Complete
 
 ## Current Goal
 
@@ -13,6 +13,7 @@ Update this file whenever the current phase, active feature, or implementation s
 ## Completed
 
 - **01-design-system**: shadcn/ui initialized (Nova preset, Tailwind v4), all UI primitives added (Button, Card, Dialog, Input, Tabs, Textarea, ScrollArea), lucide-react installed, `lib/utils.ts` with `cn()` created, `globals.css` updated with dark-only theme and project color tokens.
+- **02-editor-chrome**: `components/editor/editor-navbar.tsx` — fixed-height top navbar (h-12, z-50) with left/center/right sections; sidebar toggle uses `PanelLeftOpen`/`PanelLeftClose` icons driven by `isSidebarOpen` prop. `components/editor/project-sidebar.tsx` — fixed overlay sidebar (w-72, z-40, top-12) that slides in from the left without pushing content; `isOpen`/`onClose` props; Projects header with close button; Tabs (My Projects, Shared) with empty placeholder states; full-width New Project button with Plus icon. Dialog pattern is satisfied by the existing shadcn Dialog component which already uses project color tokens via CSS variable mappings in `globals.css`.
 
 ## In Progress
 
