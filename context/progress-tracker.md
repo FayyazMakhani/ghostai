@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 03: Auth — Complete
+- Feature 04: Project Dialogs & Editor Home — Complete
 
 ## Current Goal
 
@@ -15,6 +15,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - **01-design-system**: shadcn/ui initialized (Nova preset, Tailwind v4), all UI primitives added (Button, Card, Dialog, Input, Tabs, Textarea, ScrollArea), lucide-react installed, `lib/utils.ts` with `cn()` created, `globals.css` updated with dark-only theme and project color tokens.
 - **02-editor-chrome**: `components/editor/editor-navbar.tsx` — fixed-height top navbar (h-12, z-50) with left/center/right sections; sidebar toggle uses `PanelLeftOpen`/`PanelLeftClose` icons driven by `isSidebarOpen` prop. `components/editor/project-sidebar.tsx` — fixed overlay sidebar (w-72, z-40, top-12) that slides in from the left without pushing content; `isOpen`/`onClose` props; Projects header with close button; Tabs (My Projects, Shared) with empty placeholder states; full-width New Project button with Plus icon. Dialog pattern is satisfied by the existing shadcn Dialog component which already uses project color tokens via CSS variable mappings in `globals.css`.
 - **03-auth**: Clerk wired into the app. `proxy.ts` at project root uses `clerkMiddleware` + `createRouteMatcher` to protect all routes except `/sign-in` and `/sign-up` (defined via `NEXT_PUBLIC_CLERK_SIGN_IN_URL` / `NEXT_PUBLIC_CLERK_SIGN_UP_URL` env vars). `ClerkProvider` wraps root layout with `dark` theme from `@clerk/ui/themes` and CSS variable overrides — no hardcoded colors. `app/sign-in/[[...sign-in]]/page.tsx` and `app/sign-up/[[...sign-up]]/page.tsx` use a two-panel layout (left: logo + tagline + feature list on lg+; right: Clerk form) with no gradients or hero sections. `app/page.tsx` redirects authenticated users to `/editor` and unauthenticated users to `/sign-in`. `app/editor/page.tsx` created as the editor workspace shell. `UserButton` added to the editor navbar right section.
+- **04-project-dialogs**: `hooks/use-project-dialogs.ts` manages dialog kind (`create` | `rename` | `delete` | null), target project, form input, slug derivation, and mock project list (add/rename/delete in local state). `components/editor/project-dialogs.tsx` renders four controlled dialogs — Create (name input + live `ghostai.app/{slug}` URL preview, Enter submits), Rename (pre-filled input, `onFocus` selects all text for overtype, Enter submits, live URL preview), Delete step 1 (first confirmation: Cancel auto-focused so Enter never deletes, Delete project button advances to step 2), Delete step 2 (final confirmation: "Are you absolutely sure?", Cancel auto-focused, "Yes, delete forever" executes deletion; both close paths reset `deleteStep` to 1). All dialog titles use `text-lg font-semibold text-copy-primary`; inputs use explicit `text-copy-primary`. `components/editor/project-sidebar.tsx` updated with project list rendering: owned projects show rename/delete action buttons on hover; shared projects show no actions; mobile backdrop scrim (hidden on md+) closes sidebar on tap. `app/editor/page.tsx` updated with centered editor home (heading + description + New Project button) wired to Create dialog; all sidebar actions wired through the hook.
 
 ## In Progress
 
