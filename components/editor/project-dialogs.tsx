@@ -47,6 +47,11 @@ export function ProjectDialogs({
   onSubmit,
 }: ProjectDialogsProps) {
   const [deleteStep, setDeleteStep] = useState<1 | 2>(1)
+  const [prevDialogKind, setPrevDialogKind] = useState<DialogKind>(dialogKind)
+  if (prevDialogKind !== dialogKind) {
+    setPrevDialogKind(dialogKind)
+    if (dialogKind !== "delete") setDeleteStep(1)
+  }
 
   function handleClose() {
     setDeleteStep(1)
