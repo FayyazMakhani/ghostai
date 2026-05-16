@@ -83,7 +83,7 @@ export function ProjectSidebar({
                       <span className="flex-1 truncate text-sm text-copy-primary">
                         {project.name}
                       </span>
-                      <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                      <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
                         <Button
                           variant="ghost"
                           size="icon-sm"

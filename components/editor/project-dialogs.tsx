@@ -80,7 +80,7 @@ export function ProjectDialogs({
               value={projectName}
               onChange={(e) => onProjectNameChange(e.target.value)}
               onKeyDown={(e) =>
-                e.key === "Enter" && projectName.trim() && onSubmit()
+                e.key === "Enter" && !isLoading && projectName.trim() && onSubmit()
               }
               className="text-copy-primary"
               autoFocus
@@ -121,7 +121,7 @@ export function ProjectDialogs({
               value={projectName}
               onChange={(e) => onProjectNameChange(e.target.value)}
               onKeyDown={(e) =>
-                e.key === "Enter" && projectName.trim() && onSubmit()
+                e.key === "Enter" && !isLoading && projectName.trim() && onSubmit()
               }
               onFocus={(e) => e.target.select()}
               className="text-copy-primary"
