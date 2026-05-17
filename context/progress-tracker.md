@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 04: Project Dialogs & Editor Home — Complete
+- Feature 05: Prisma Schema & Data Layer — Complete
 
 ## Current Goal
 
@@ -16,6 +16,7 @@ Update this file whenever the current phase, active feature, or implementation s
 - **02-editor-chrome**: `components/editor/editor-navbar.tsx` — fixed-height top navbar (h-12, z-50) with left/center/right sections; sidebar toggle uses `PanelLeftOpen`/`PanelLeftClose` icons driven by `isSidebarOpen` prop. `components/editor/project-sidebar.tsx` — fixed overlay sidebar (w-72, z-40, top-12) that slides in from the left without pushing content; `isOpen`/`onClose` props; Projects header with close button; Tabs (My Projects, Shared) with empty placeholder states; full-width New Project button with Plus icon. Dialog pattern is satisfied by the existing shadcn Dialog component which already uses project color tokens via CSS variable mappings in `globals.css`.
 - **03-auth**: Clerk wired into the app. `proxy.ts` at project root uses `clerkMiddleware` + `createRouteMatcher` to protect all routes except `/sign-in` and `/sign-up` (defined via `NEXT_PUBLIC_CLERK_SIGN_IN_URL` / `NEXT_PUBLIC_CLERK_SIGN_UP_URL` env vars). `ClerkProvider` wraps root layout with `dark` theme from `@clerk/ui/themes` and CSS variable overrides — no hardcoded colors. `app/sign-in/[[...sign-in]]/page.tsx` and `app/sign-up/[[...sign-up]]/page.tsx` use a two-panel layout (left: logo + tagline + feature list on lg+; right: Clerk form) with no gradients or hero sections. `app/page.tsx` redirects authenticated users to `/editor` and unauthenticated users to `/sign-in`. `app/editor/page.tsx` created as the editor workspace shell. `UserButton` added to the editor navbar right section.
 - **04-project-dialogs**: `hooks/use-project-dialogs.ts` manages dialog kind (`create` | `rename` | `delete` | null), target project, form input, slug derivation, and mock project list (add/rename/delete in local state). `components/editor/project-dialogs.tsx` renders four controlled dialogs — Create (name input + live `ghostai.app/{slug}` URL preview, Enter submits), Rename (pre-filled input, `onFocus` selects all text for overtype, Enter submits, live URL preview), Delete step 1 (first confirmation: Cancel auto-focused so Enter never deletes, Delete project button advances to step 2), Delete step 2 (final confirmation: "Are you absolutely sure?", Cancel auto-focused, "Yes, delete forever" executes deletion; both close paths reset `deleteStep` to 1). All dialog titles use `text-lg font-semibold text-copy-primary`; inputs use explicit `text-copy-primary`. `components/editor/project-sidebar.tsx` updated with project list rendering: owned projects show rename/delete action buttons on hover; shared projects show no actions; mobile backdrop scrim (hidden on md+) closes sidebar on tap. `app/editor/page.tsx` updated with centered editor home (heading + description + New Project button) wired to Create dialog; all sidebar actions wired through the hook.
+- **05-prisma**: `prisma/models/project.prisma` — `ProjectStatus` enum (`DRAFT`, `ARCHIVED`); `Project` model with ownerId (Clerk user), name, optional description, status, optional canvasJsonPath, timestamps, indexes on ownerId and createdAt; `ProjectCollaborator` model with composite PK `[projectId, email]` (enforces unique constraint), cascade-delete relation to Project, email, createdAt, indexes on email and `[projectId, createdAt]`. `lib/prisma.ts` — cached singleton using `globalThis`; branches on `DATABASE_URL`: `prisma+postgres://` → `new PrismaClient({ accelerateUrl })`, otherwise → `PrismaPg({ connectionString })` adapter. Migration `20260517075135_init` applied; client generated to `app/generated/prisma/`. Imports use `@/app/generated/prisma/client` (Prisma 7 custom output path).
 
 ## In Progress
 
@@ -31,6 +32,9 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Architecture Decisions
 
+- Prisma 7 uses `prisma.config.ts` (not schema-embedded `url`) for datasource config; `prisma/` directory is the multi-file schema root.
+- Prisma 7 generates client to `app/generated/prisma/`; import as `@/app/generated/prisma/client`, not `@prisma/client`.
+- `PrismaClientOptions` in Prisma 7: `{ adapter }` for direct PG, `{ accelerateUrl }` for Accelerate — mutually exclusive union.
 - shadcn/ui on Tailwind v4 — CSS variables defined in `globals.css` via `@theme inline`; no `tailwind.config.js` needed.
 - Dark-only theme: project custom properties (`--bg-base`, `--text-primary`, etc.) defined once in `:root` with no `.dark` override. shadcn semantic variables (`--background`, `--foreground`, etc.) are mapped to project variables.
 - Tailwind utilities for project tokens: `bg-base`, `bg-surface`, `bg-elevated`, `bg-subtle`, `text-copy-primary`, `text-copy-muted`, `border-surface-border`, `text-brand`, `bg-accent-dim`, `text-ai`, `text-ai-text`, `text-error`, `text-success`, `text-warning`.
