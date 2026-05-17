@@ -18,14 +18,24 @@ export async function POST(request: Request) {
   const { userId } = await auth()
   if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 })
 
-  const body = await request.json().catch(() => ({}))
-  const name = typeof body.name === "string" && body.name.trim() ? body.name.trim() : "Untitled Project"
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return Response.json({ error: "invalid JSON" }, { status: 400 })
+  }
+  if (typeof body !== "object" || body === null)
+    return Response.json({ error: "body must be a JSON object" }, { status: 400 })
 
-  if (body.id !== undefined) {
-    if (typeof body.id !== "string" || !/^[a-z0-9-]+$/.test(body.id) || body.id.length > 100)
+  const b = body as Record<string, unknown>
+  const name =
+    typeof b.name === "string" && b.name.trim() ? b.name.trim() : "Untitled Project"
+
+  if (b.id !== undefined) {
+    if (typeof b.id !== "string" || !/^[a-z0-9-]+$/.test(b.id) || b.id.length > 100)
       return Response.json({ error: "invalid id" }, { status: 400 })
   }
-  const id: string | undefined = body.id
+  const id = b.id as string | undefined
 
   try {
     const project = await prisma.project.create({

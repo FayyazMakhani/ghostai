@@ -43,6 +43,7 @@ export function useProjectActions(activeProjectId?: string) {
   const roomId = slug ? `${slug}-${roomSuffix}` : roomSuffix
 
   function openCreate() {
+    setError(null)
     setProjectName("")
     setTargetProject(null)
     setRoomSuffix(generateSuffix())
@@ -50,12 +51,14 @@ export function useProjectActions(activeProjectId?: string) {
   }
 
   function openRename(project: ProjectSummary) {
+    setError(null)
     setProjectName(project.name)
     setTargetProject(project)
     setDialogKind("rename")
   }
 
   function openDelete(project: ProjectSummary) {
+    setError(null)
     setTargetProject(project)
     setDialogKind("delete")
   }
