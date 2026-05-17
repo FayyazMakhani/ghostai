@@ -21,6 +21,15 @@ function generateSuffix(): string {
   return Math.random().toString(36).slice(2, 7)
 }
 
+async function parseErrorMessage(res: Response): Promise<string> {
+  try {
+    const body = await res.json()
+    return typeof body?.error === "string" ? body.error : res.statusText
+  } catch {
+    return res.statusText || `HTTP ${res.status}`
+  }
+}
+
 export function useProjectActions(activeProjectId?: string) {
   const router = useRouter()
   const [dialogKind, setDialogKind] = useState<DialogKind>(null)
@@ -28,6 +37,7 @@ export function useProjectActions(activeProjectId?: string) {
   const [projectName, setProjectName] = useState("")
   const [roomSuffix, setRoomSuffix] = useState<string>(generateSuffix)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const slug = toSlug(projectName)
   const roomId = slug ? `${slug}-${roomSuffix}` : roomSuffix
@@ -54,22 +64,26 @@ export function useProjectActions(activeProjectId?: string) {
     setDialogKind(null)
     setTargetProject(null)
     setProjectName("")
+    setError(null)
   }
 
   async function handleCreate() {
     if (!projectName.trim()) return
     setIsLoading(true)
+    setError(null)
     try {
       const res = await fetch("/api/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: projectName.trim(), id: roomId }),
       })
-      if (res.ok) {
-        const project = await res.json()
-        closeDialog()
-        router.push(`/editor/${project.id}`)
+      if (!res.ok) {
+        setError(`Failed to create project: ${await parseErrorMessage(res)}`)
+        return
       }
+      const project = await res.json()
+      closeDialog()
+      router.push(`/editor/${project.id}`)
     } finally {
       setIsLoading(false)
     }
@@ -78,16 +92,19 @@ export function useProjectActions(activeProjectId?: string) {
   async function handleRename() {
     if (!targetProject || !projectName.trim()) return
     setIsLoading(true)
+    setError(null)
     try {
       const res = await fetch(`/api/projects/${targetProject.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: projectName.trim() }),
       })
-      if (res.ok) {
-        closeDialog()
-        router.refresh()
+      if (!res.ok) {
+        setError(`Failed to rename project: ${await parseErrorMessage(res)}`)
+        return
       }
+      closeDialog()
+      router.refresh()
     } finally {
       setIsLoading(false)
     }
@@ -96,18 +113,21 @@ export function useProjectActions(activeProjectId?: string) {
   async function handleDelete() {
     if (!targetProject) return
     setIsLoading(true)
+    setError(null)
     try {
       const res = await fetch(`/api/projects/${targetProject.id}`, {
         method: "DELETE",
       })
-      if (res.ok) {
-        const deletedId = targetProject.id
-        closeDialog()
-        if (activeProjectId && activeProjectId === deletedId) {
-          router.push("/editor")
-        } else {
-          router.refresh()
-        }
+      if (!res.ok) {
+        setError(`Failed to delete project: ${await parseErrorMessage(res)}`)
+        return
+      }
+      const deletedId = targetProject.id
+      closeDialog()
+      if (activeProjectId && activeProjectId === deletedId) {
+        router.push("/editor")
+      } else {
+        router.refresh()
       }
     } finally {
       setIsLoading(false)
@@ -127,6 +147,7 @@ export function useProjectActions(activeProjectId?: string) {
     slug,
     roomId,
     isLoading,
+    error,
     openCreate,
     openRename,
     openDelete,

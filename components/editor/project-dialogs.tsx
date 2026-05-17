@@ -22,6 +22,7 @@ interface ProjectDialogsProps {
   slug: string
   roomId: string
   isLoading: boolean
+  error: string | null
   onClose: () => void
   onProjectNameChange: (name: string) => void
   onSubmit: () => void
@@ -44,6 +45,7 @@ export function ProjectDialogs({
   slug,
   roomId,
   isLoading,
+  error,
   onClose,
   onProjectNameChange,
   onSubmit,
@@ -93,6 +95,7 @@ export function ProjectDialogs({
               autoFocus
             />
             <UrlPreview id={roomId} />
+            {error && <p className="text-xs text-error">{error}</p>}
           </div>
           <DialogFooter showCloseButton>
             <Button
@@ -135,6 +138,7 @@ export function ProjectDialogs({
               autoFocus
             />
             <UrlPreview id={slug} />
+            {error && <p className="text-xs text-error">{error}</p>}
           </div>
           <DialogFooter showCloseButton>
             <Button
@@ -197,6 +201,7 @@ export function ProjectDialogs({
               </DialogDescription>
             )}
           </DialogHeader>
+          {error && <p className="px-1 text-xs text-error">{error}</p>}
           <DialogFooter>
             <DialogClose render={<Button variant="outline" autoFocus />}>
               Cancel

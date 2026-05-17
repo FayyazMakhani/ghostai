@@ -9,43 +9,30 @@ export async function PATCH(
   if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 })
 
   const { projectId } = await params
-  const project = await prisma.project.findUnique({ where: { id: projectId } })
-
-  if (!project) return Response.json({ error: "Not found" }, { status: 404 })
-  if (project.ownerId !== userId) return Response.json({ error: "Forbidden" }, { status: 403 })
-
   const body = await request.json().catch(() => ({}))
-  const name = typeof body.name === "string" && body.name.trim() ? body.name.trim() : undefined
-
-  const description =
-    typeof body.description === "string" && body.description.trim()
-      ? body.description.trim()
-      : undefined
-
-  const allowedStatuses = ["DRAFT", "ARCHIVED"]
-  const status =
-    typeof body.status === "string" && allowedStatuses.includes(body.status)
-      ? body.status
-      : undefined
-
-  const canvasJsonPath =
-    typeof body.canvasJsonPath === "string" && body.canvasJsonPath.trim()
-      ? body.canvasJsonPath.trim()
-      : undefined
-
-  if (!name) return Response.json({ error: "name is required" }, { status: 400 })
 
   const data: Record<string, unknown> = {}
-  if (name !== undefined) data.name = name
-  if (description !== undefined) data.description = description
-  if (status !== undefined) data.status = status
-  if (canvasJsonPath !== undefined) data.canvasJsonPath = canvasJsonPath
+  if (typeof body.name === "string" && body.name.trim()) data.name = body.name.trim()
+  if (typeof body.description === "string" && body.description.trim()) data.description = body.description.trim()
+  if (typeof body.status === "string" && ["DRAFT", "ARCHIVED"].includes(body.status)) data.status = body.status
+  if (typeof body.canvasJsonPath === "string" && body.canvasJsonPath.trim()) data.canvasJsonPath = body.canvasJsonPath.trim()
 
-  const updated = await prisma.project.update({
-    where: { id: projectId },
+  if (Object.keys(data).length === 0)
+    return Response.json({ error: "no updatable fields provided" }, { status: 400 })
+
+  const { count } = await prisma.project.updateMany({
+    where: { id: projectId, ownerId: userId },
     data,
   })
 
+  if (count === 0) {
+    const exists = await prisma.project.findUnique({ where: { id: projectId } })
+    return exists
+      ? Response.json({ error: "Forbidden" }, { status: 403 })
+      : Response.json({ error: "Not found" }, { status: 404 })
+  }
+
+  const updated = await prisma.project.findUnique({ where: { id: projectId } })
   return Response.json(updated)
 }
 
@@ -57,12 +44,17 @@ export async function DELETE(
   if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 })
 
   const { projectId } = await params
-  const project = await prisma.project.findUnique({ where: { id: projectId } })
 
-  if (!project) return Response.json({ error: "Not found" }, { status: 404 })
-  if (project.ownerId !== userId) return Response.json({ error: "Forbidden" }, { status: 403 })
+  const { count } = await prisma.project.deleteMany({
+    where: { id: projectId, ownerId: userId },
+  })
 
-  await prisma.project.delete({ where: { id: projectId } })
+  if (count === 0) {
+    const exists = await prisma.project.findUnique({ where: { id: projectId } })
+    return exists
+      ? Response.json({ error: "Forbidden" }, { status: 403 })
+      : Response.json({ error: "Not found" }, { status: 404 })
+  }
 
   return new Response(null, { status: 204 })
 }

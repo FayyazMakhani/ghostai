@@ -25,6 +25,7 @@ export function EditorHome({ ownedProjects, sharedProjects }: EditorHomeProps) {
     slug,
     roomId,
     isLoading,
+    error,
     openCreate,
     openRename,
     openDelete,
@@ -72,6 +73,7 @@ export function EditorHome({ ownedProjects, sharedProjects }: EditorHomeProps) {
         slug={slug}
         roomId={roomId}
         isLoading={isLoading}
+        error={error}
         onClose={closeDialog}
         onProjectNameChange={setProjectName}
         onSubmit={handleSubmit}
