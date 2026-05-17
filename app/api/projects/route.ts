@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   } catch {
     return Response.json({ error: "invalid JSON" }, { status: 400 })
   }
-  if (typeof body !== "object" || body === null)
+  if (typeof body !== "object" || body === null || Array.isArray(body))
     return Response.json({ error: "body must be a JSON object" }, { status: 400 })
 
   const b = body as Record<string, unknown>
