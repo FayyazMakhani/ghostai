@@ -12,6 +12,7 @@ interface ProjectSidebarProps {
   onClose: () => void
   ownedProjects: ProjectSummary[]
   sharedProjects: ProjectSummary[]
+  activeProjectId?: string
   onNewProject: () => void
   onRenameProject: (project: ProjectSummary) => void
   onDeleteProject: (project: ProjectSummary) => void
@@ -22,6 +23,7 @@ export function ProjectSidebar({
   onClose,
   ownedProjects,
   sharedProjects,
+  activeProjectId,
   onNewProject,
   onRenameProject,
   onDeleteProject,
@@ -77,9 +79,11 @@ export function ProjectSidebar({
                   {ownedProjects.map((project) => (
                     <div
                       key={project.id}
-                      className="group flex items-center gap-1 rounded-xl px-2 py-2 hover:bg-elevated"
+                      className={`group flex items-center gap-1 rounded-xl px-2 py-2 hover:bg-elevated ${
+                        project.id === activeProjectId ? "bg-elevated" : ""
+                      }`}
                     >
-                      <span className="flex-1 truncate text-sm text-copy-primary">
+                      <span className={`flex-1 truncate text-sm ${project.id === activeProjectId ? "font-medium text-copy-primary" : "text-copy-primary"}`}>
                         {project.name}
                       </span>
                       <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
@@ -116,9 +120,11 @@ export function ProjectSidebar({
                   {sharedProjects.map((project) => (
                     <div
                       key={project.id}
-                      className="flex items-center gap-1 rounded-xl px-2 py-2 hover:bg-elevated"
+                      className={`flex items-center gap-1 rounded-xl px-2 py-2 hover:bg-elevated ${
+                        project.id === activeProjectId ? "bg-elevated" : ""
+                      }`}
                     >
-                      <span className="flex-1 truncate text-sm text-copy-primary">
+                      <span className={`flex-1 truncate text-sm ${project.id === activeProjectId ? "font-medium text-copy-primary" : "text-copy-primary"}`}>
                         {project.name}
                       </span>
                     </div>
