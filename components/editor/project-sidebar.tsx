@@ -5,28 +5,27 @@ import { Pencil, Plus, Trash2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { MockProject } from "@/hooks/use-project-dialogs"
+import type { ProjectSummary } from "@/lib/projects"
 
 interface ProjectSidebarProps {
   isOpen: boolean
   onClose: () => void
-  projects: MockProject[]
+  ownedProjects: ProjectSummary[]
+  sharedProjects: ProjectSummary[]
   onNewProject: () => void
-  onRenameProject: (project: MockProject) => void
-  onDeleteProject: (project: MockProject) => void
+  onRenameProject: (project: ProjectSummary) => void
+  onDeleteProject: (project: ProjectSummary) => void
 }
 
 export function ProjectSidebar({
   isOpen,
   onClose,
-  projects,
+  ownedProjects,
+  sharedProjects,
   onNewProject,
   onRenameProject,
   onDeleteProject,
 }: ProjectSidebarProps) {
-  const ownedProjects = projects.filter((p) => p.owned)
-  const sharedProjects = projects.filter((p) => !p.owned)
-
   return (
     <>
       {/* Mobile backdrop scrim */}

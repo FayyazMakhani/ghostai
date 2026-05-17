@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 05: Prisma Schema & Data Layer — Complete
+- Feature 07: Wire Editor Home — Complete
 
 ## Current Goal
 
@@ -17,6 +17,8 @@ Update this file whenever the current phase, active feature, or implementation s
 - **03-auth**: Clerk wired into the app. `proxy.ts` at project root uses `clerkMiddleware` + `createRouteMatcher` to protect all routes except `/sign-in` and `/sign-up` (defined via `NEXT_PUBLIC_CLERK_SIGN_IN_URL` / `NEXT_PUBLIC_CLERK_SIGN_UP_URL` env vars). `ClerkProvider` wraps root layout with `dark` theme from `@clerk/ui/themes` and CSS variable overrides — no hardcoded colors. `app/sign-in/[[...sign-in]]/page.tsx` and `app/sign-up/[[...sign-up]]/page.tsx` use a two-panel layout (left: logo + tagline + feature list on lg+; right: Clerk form) with no gradients or hero sections. `app/page.tsx` redirects authenticated users to `/editor` and unauthenticated users to `/sign-in`. `app/editor/page.tsx` created as the editor workspace shell. `UserButton` added to the editor navbar right section.
 - **04-project-dialogs**: `hooks/use-project-dialogs.ts` manages dialog kind (`create` | `rename` | `delete` | null), target project, form input, slug derivation, and mock project list (add/rename/delete in local state). `components/editor/project-dialogs.tsx` renders four controlled dialogs — Create (name input + live `ghostai.app/{slug}` URL preview, Enter submits), Rename (pre-filled input, `onFocus` selects all text for overtype, Enter submits, live URL preview), Delete step 1 (first confirmation: Cancel auto-focused so Enter never deletes, Delete project button advances to step 2), Delete step 2 (final confirmation: "Are you absolutely sure?", Cancel auto-focused, "Yes, delete forever" executes deletion; both close paths reset `deleteStep` to 1). All dialog titles use `text-lg font-semibold text-copy-primary`; inputs use explicit `text-copy-primary`. `components/editor/project-sidebar.tsx` updated with project list rendering: owned projects show rename/delete action buttons on hover; shared projects show no actions; mobile backdrop scrim (hidden on md+) closes sidebar on tap. `app/editor/page.tsx` updated with centered editor home (heading + description + New Project button) wired to Create dialog; all sidebar actions wired through the hook.
 - **05-prisma**: `prisma/models/project.prisma` — `ProjectStatus` enum (`DRAFT`, `ARCHIVED`); `Project` model with ownerId (Clerk user), name, optional description, status, optional canvasJsonPath, timestamps, indexes on ownerId and createdAt; `ProjectCollaborator` model with composite PK `[projectId, email]` (enforces unique constraint), cascade-delete relation to Project, email, createdAt, indexes on email and `[projectId, createdAt]`. `lib/prisma.ts` — cached singleton using `globalThis`; branches on `DATABASE_URL`: `prisma+postgres://` → `new PrismaClient({ accelerateUrl })`, otherwise → `PrismaPg({ connectionString })` adapter. Migration `20260517075135_init` applied; client generated to `app/generated/prisma/`. Imports use `@/app/generated/prisma/client` (Prisma 7 custom output path).
+- **06-project-apis**: `app/api/projects/route.ts` — `GET` returns all projects owned by the authenticated user ordered by `createdAt` desc; `POST` creates a project with name defaulting to `"Untitled Project"` if absent. `app/api/projects/[projectId]/route.ts` — `PATCH` renames project (requires non-empty `name` body field); `DELETE` removes project; both verify ownership and return `403` for non-owners. All four handlers return `401` for unauthenticated requests. Auth via `auth()` from `@clerk/nextjs/server`.
+- **07-wire-editor-home**: `lib/projects.ts` — `getOwnedProjects()` fetches by `ownerId`; `getSharedProjects()` fetches via `ProjectCollaborator` by primary email using `currentUser()`. `POST /api/projects` updated to accept optional custom `id` (validated `[a-z0-9-]+`, max 100 chars). `hooks/use-project-actions.ts` — manages create/rename/delete dialog state; create slugifies name + generates 5-char random suffix as `roomId`, POSTs with custom `id`, navigates to `/editor/[id]`; rename PATCHes and refreshes; delete DELETEs and redirects to `/editor` if deleting active workspace or refreshes otherwise. `app/editor/page.tsx` — converted to server component; fetches owned and shared projects in parallel and passes to `EditorHome`. `components/editor/editor-home.tsx` — new client shell with sidebar state and dialog wiring. `components/editor/project-sidebar.tsx` and `project-dialogs.tsx` — updated to use `ProjectSummary` from `lib/projects`; sidebar receives separate `ownedProjects`/`sharedProjects` arrays; create dialog shows full `roomId` preview; rename dialog shows slug preview.
 
 ## In Progress
 
@@ -25,6 +27,7 @@ Update this file whenever the current phase, active feature, or implementation s
 ## Next Up
 
 - Add the next planned feature unit here.
+
 
 ## Open Questions
 

@@ -13,25 +13,27 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import type { DialogKind, MockProject } from "@/hooks/use-project-dialogs"
+import type { DialogKind, ProjectSummary } from "@/hooks/use-project-actions"
 
 interface ProjectDialogsProps {
   dialogKind: DialogKind
-  targetProject: MockProject | null
+  targetProject: ProjectSummary | null
   projectName: string
   slug: string
+  roomId: string
   isLoading: boolean
+  error: string | null
   onClose: () => void
   onProjectNameChange: (name: string) => void
   onSubmit: () => void
 }
 
-function UrlPreview({ slug }: { slug: string }) {
-  if (!slug) return null
+function UrlPreview({ id }: { id: string }) {
+  if (!id) return null
   return (
     <p className="font-mono text-xs text-copy-muted">
       ghostai.app/
-      <span className="text-copy-primary">{slug}</span>
+      <span className="text-copy-primary">{id}</span>
     </p>
   )
 }
@@ -41,7 +43,9 @@ export function ProjectDialogs({
   targetProject,
   projectName,
   slug,
+  roomId,
   isLoading,
+  error,
   onClose,
   onProjectNameChange,
   onSubmit,
@@ -90,7 +94,8 @@ export function ProjectDialogs({
               className="text-copy-primary"
               autoFocus
             />
-            <UrlPreview slug={slug} />
+            <UrlPreview id={roomId} />
+            {error && <p className="text-xs text-error">{error}</p>}
           </div>
           <DialogFooter showCloseButton>
             <Button
@@ -132,7 +137,8 @@ export function ProjectDialogs({
               className="text-copy-primary"
               autoFocus
             />
-            <UrlPreview slug={slug} />
+            <UrlPreview id={slug} />
+            {error && <p className="text-xs text-error">{error}</p>}
           </div>
           <DialogFooter showCloseButton>
             <Button
@@ -195,6 +201,7 @@ export function ProjectDialogs({
               </DialogDescription>
             )}
           </DialogHeader>
+          {error && <p className="px-1 text-xs text-error">{error}</p>}
           <DialogFooter>
             <DialogClose render={<Button variant="outline" autoFocus />}>
               Cancel
