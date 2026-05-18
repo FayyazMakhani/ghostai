@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Check, Copy, Loader2, Trash2, UserPlus } from "lucide-react"
 
 import {
@@ -38,30 +38,37 @@ export function ShareDialog({
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchCollaborators = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch(`/api/projects/${projectId}/collaborators`)
-      if (res.status === 403) {
-        setCollaborators([])
-        setError("You no longer have access to this project")
-        return
-      }
-      if (!res.ok) throw new Error()
-      const data = await res.json()
-      setCollaborators(data.collaborators)
-    } catch {
-      setCollaborators([])
-      setError("Could not load collaborators")
-    } finally {
-      setLoading(false)
-    }
-  }, [projectId])
-
   useEffect(() => {
-    if (open) fetchCollaborators()
-  }, [open, fetchCollaborators])
+    if (!open) return
+    const controller = new AbortController()
+
+    async function load() {
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await fetch(`/api/projects/${projectId}/collaborators`, {
+          signal: controller.signal,
+        })
+        if (res.status === 403) {
+          setCollaborators([])
+          setError("You no longer have access to this project")
+          return
+        }
+        if (!res.ok) throw new Error()
+        const data = await res.json()
+        setCollaborators(data.collaborators)
+      } catch {
+        if (controller.signal.aborted) return
+        setCollaborators([])
+        setError("Could not load collaborators")
+      } finally {
+        if (!controller.signal.aborted) setLoading(false)
+      }
+    }
+
+    load()
+    return () => controller.abort()
+  }, [open, projectId])
 
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault()

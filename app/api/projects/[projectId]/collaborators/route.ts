@@ -1,3 +1,4 @@
+import { Prisma } from "@/app/generated/prisma/client"
 import { prisma } from "@/lib/prisma"
 import { getCurrentIdentity } from "@/lib/project-access"
 import { enrichEmailsWithClerk } from "@/lib/clerk-users"
@@ -71,8 +72,11 @@ export async function POST(
 
   try {
     await prisma.projectCollaborator.create({ data: { projectId, email } })
-  } catch {
-    return Response.json({ error: "Already a collaborator" }, { status: 409 })
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      return Response.json({ error: "Already a collaborator" }, { status: 409 })
+    }
+    throw err
   }
 
   const clerkData = await enrichEmailsWithClerk([email])
