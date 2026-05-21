@@ -3,8 +3,11 @@
 import { useState } from "react"
 
 import { EditorNavbar } from "@/components/editor/editor-navbar"
+import { ProjectDialogs } from "@/components/editor/project-dialogs"
 import { ProjectSidebar } from "@/components/editor/project-sidebar"
 import { ShareDialog } from "@/components/editor/share-dialog"
+import { CanvasWrapper } from "@/components/editor/canvas-wrapper"
+import { useProjectActions } from "@/hooks/use-project-actions"
 import type { ProjectSummary } from "@/lib/projects"
 
 interface WorkspaceShellProps {
@@ -26,6 +29,22 @@ export function WorkspaceShell({
   const [isAISidebarOpen, setIsAISidebarOpen] = useState(false)
   const [isShareOpen, setIsShareOpen] = useState(false)
 
+  const {
+    dialogKind,
+    targetProject,
+    projectName: dialogProjectName,
+    slug,
+    roomId,
+    isLoading,
+    error,
+    openCreate,
+    openRename,
+    openDelete,
+    closeDialog,
+    setProjectName,
+    handleSubmit,
+  } = useProjectActions(projectId)
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-base">
       <EditorNavbar
@@ -43,9 +62,9 @@ export function WorkspaceShell({
         ownedProjects={ownedProjects}
         sharedProjects={sharedProjects}
         activeProjectId={projectId}
-        onNewProject={() => {}}
-        onRenameProject={() => {}}
-        onDeleteProject={() => {}}
+        onNewProject={openCreate}
+        onRenameProject={openRename}
+        onDeleteProject={openDelete}
       />
 
       <ShareDialog
@@ -55,10 +74,22 @@ export function WorkspaceShell({
         isOwner={isOwner}
       />
 
+      <ProjectDialogs
+        dialogKind={dialogKind}
+        targetProject={targetProject}
+        projectName={dialogProjectName}
+        slug={slug}
+        roomId={roomId}
+        isLoading={isLoading}
+        error={error}
+        onClose={closeDialog}
+        onProjectNameChange={setProjectName}
+        onSubmit={handleSubmit}
+      />
+
       <div className="relative flex flex-1 overflow-hidden pt-12">
-        {/* Canvas placeholder */}
-        <main className="flex flex-1 items-center justify-center bg-base">
-          <p className="text-sm text-copy-muted">Canvas coming soon</p>
+        <main className="relative flex flex-1 overflow-hidden">
+          <CanvasWrapper roomId={projectId} />
         </main>
 
         {/* AI sidebar placeholder */}
