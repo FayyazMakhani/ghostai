@@ -33,7 +33,11 @@ function handleDragStart(e: React.DragEvent, shape: NodeShape) {
   e.dataTransfer.effectAllowed = "copy"
 }
 
-export function ShapePanel() {
+interface ShapePanelProps {
+  onAddShape: (shape: NodeShape) => void
+}
+
+export function ShapePanel({ onAddShape }: ShapePanelProps) {
   return (
     <div className="flex items-center gap-1 rounded-full border border-[#2a2a30] bg-[#111114] px-3 py-2 shadow-lg">
       {SHAPES.map(({ shape, Icon, label }) => (
@@ -41,6 +45,7 @@ export function ShapePanel() {
           key={shape}
           draggable
           onDragStart={(e) => handleDragStart(e, shape)}
+          onClick={() => onAddShape(shape)}
           title={label}
           aria-label={label}
           className="flex h-8 w-8 cursor-grab items-center justify-center rounded-lg text-[#808090] transition-colors hover:bg-[#1e1e23] hover:text-[#f0f0f4] active:cursor-grabbing"

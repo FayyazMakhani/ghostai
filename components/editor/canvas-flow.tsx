@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback } from "react"
+import { useCallback, useRef } from "react"
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -15,8 +15,8 @@ import {
 import { useLiveblocksFlow, Cursors } from "@liveblocks/react-flow"
 import "@xyflow/react/dist/style.css"
 import "@liveblocks/react-flow/styles.css"
-import type { CanvasNode, CanvasEdge, ShapeDragPayload } from "@/types/canvas"
-import { DEFAULT_NODE_COLOR } from "@/types/canvas"
+import type { CanvasNode, CanvasEdge, ShapeDragPayload, NodeShape } from "@/types/canvas"
+import { DEFAULT_NODE_COLOR, SHAPE_DEFAULTS } from "@/types/canvas"
 import { CanvasNodeComponent } from "./canvas-node"
 import { ShapePanel } from "./shape-panel"
 
@@ -24,9 +24,11 @@ const nodeTypes: NodeTypes = {
   canvasNode: CanvasNodeComponent,
 }
 
-let nodeCounter = 0
+const MAX_NODE_DIM = 2000
 
 function CanvasFlowInner() {
+  const containerRef = useRef<HTMLDivElement>(null)
+
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDelete } =
     useLiveblocksFlow<CanvasNode, CanvasEdge>({
       suspense: true,
@@ -35,6 +37,26 @@ function CanvasFlowInner() {
     })
 
   const { screenToFlowPosition } = useReactFlow()
+
+  const addShapeAtCenter = useCallback(
+    (shape: NodeShape) => {
+      const defaults = SHAPE_DEFAULTS[shape]
+      const rect = containerRef.current?.getBoundingClientRect()
+      const cx = rect ? rect.left + rect.width / 2 : window.innerWidth / 2
+      const cy = rect ? rect.top + rect.height / 2 : window.innerHeight / 2
+      const position = screenToFlowPosition({ x: cx, y: cy })
+      const newNode: CanvasNode = {
+        id: crypto.randomUUID(),
+        type: "canvasNode",
+        position,
+        data: { label: "", color: DEFAULT_NODE_COLOR.bg, shape },
+        width: defaults.width,
+        height: defaults.height,
+      }
+      onNodesChange([{ type: "add", item: newNode }])
+    },
+    [screenToFlowPosition, onNodesChange],
+  )
 
   const onDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -54,16 +76,23 @@ function CanvasFlowInner() {
         return
       }
 
+      const width = Number.isFinite(payload.width) && payload.width > 0
+        ? Math.min(payload.width, MAX_NODE_DIM)
+        : 120
+      const height = Number.isFinite(payload.height) && payload.height > 0
+        ? Math.min(payload.height, MAX_NODE_DIM)
+        : 80
+
       const position = screenToFlowPosition({ x: e.clientX, y: e.clientY })
-      const id = `${payload.shape}-${Date.now()}-${++nodeCounter}`
+      const id = crypto.randomUUID()
 
       const newNode: CanvasNode = {
         id,
         type: "canvasNode",
         position,
         data: { label: "", color: DEFAULT_NODE_COLOR.bg, shape: payload.shape },
-        width: payload.width,
-        height: payload.height,
+        width,
+        height,
       }
 
       onNodesChange([{ type: "add", item: newNode }])
@@ -72,7 +101,7 @@ function CanvasFlowInner() {
   )
 
   return (
-    <div className="h-full w-full">
+    <div ref={containerRef} className="h-full w-full">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -95,7 +124,7 @@ function CanvasFlowInner() {
         />
         <Cursors />
         <Panel position="bottom-center" style={{ marginBottom: "1.5rem" }}>
-          <ShapePanel />
+          <ShapePanel onAddShape={addShapeAtCenter} />
         </Panel>
       </ReactFlow>
     </div>

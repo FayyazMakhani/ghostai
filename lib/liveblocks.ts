@@ -33,9 +33,11 @@ const globalForLiveblocks = globalThis as unknown as {
 // the first request to avoid failures during build-time module evaluation.
 export function getLiveblocks(): Liveblocks {
   if (!globalForLiveblocks.liveblocks) {
-    globalForLiveblocks.liveblocks = new Liveblocks({
-      secret: process.env.LIVEBLOCKS_SECRET_KEY!,
-    });
+    const secret = process.env.LIVEBLOCKS_SECRET_KEY;
+    if (!secret) {
+      throw new Error("LIVEBLOCKS_SECRET_KEY is required");
+    }
+    globalForLiveblocks.liveblocks = new Liveblocks({ secret });
   }
   return globalForLiveblocks.liveblocks;
 }
