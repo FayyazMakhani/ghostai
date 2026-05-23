@@ -18,14 +18,14 @@ export const NODE_SHAPES: NodeShape[] = [
 ]
 
 export const NODE_COLORS = [
-  { bg: "#1F1F1F", text: "#EDEDED" },
-  { bg: "#10233D", text: "#52A8FF" },
-  { bg: "#2E1938", text: "#BF7AF0" },
-  { bg: "#331B00", text: "#FF990A" },
-  { bg: "#3C1618", text: "#FF6166" },
-  { bg: "#3A1726", text: "#F75F8F" },
-  { bg: "#0F2E18", text: "#62C073" },
-  { bg: "#062822", text: "#0AC7B4" },
+  { bg: "#1F1F1F", text: "#EDEDED", name: "Charcoal" },
+  { bg: "#10233D", text: "#52A8FF", name: "Blue" },
+  { bg: "#2E1938", text: "#BF7AF0", name: "Purple" },
+  { bg: "#331B00", text: "#FF990A", name: "Orange" },
+  { bg: "#3C1618", text: "#FF6166", name: "Red" },
+  { bg: "#3A1726", text: "#F75F8F", name: "Pink" },
+  { bg: "#0F2E18", text: "#62C073", name: "Green" },
+  { bg: "#062822", text: "#0AC7B4", name: "Teal" },
 ] as const
 
 export const DEFAULT_NODE_COLOR = NODE_COLORS[0]

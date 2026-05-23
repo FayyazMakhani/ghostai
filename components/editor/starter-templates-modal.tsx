@@ -110,6 +110,17 @@ function TemplatePreview({ nodes, edges }: { nodes: CanvasNode[]; edges: CanvasE
           return <polygon key={node.id} points={pts} fill={fill} stroke={stroke} strokeWidth={sw} />
         }
 
+        if (shape === "cylinder") {
+          const ery = h * 0.2
+          return (
+            <g key={node.id}>
+              <rect x={pos.x} y={pos.y + ery} width={w} height={h - 2 * ery} fill={fill} stroke={stroke} strokeWidth={sw} />
+              <ellipse cx={cx} cy={pos.y + h - ery} rx={w / 2} ry={ery} fill={fill} stroke={stroke} strokeWidth={sw} />
+              <ellipse cx={cx} cy={pos.y + ery} rx={w / 2} ry={ery} fill={fill} stroke={stroke} strokeWidth={sw} />
+            </g>
+          )
+        }
+
         const rx = shape === "pill" ? Math.min(h / 2, 999) : 2
         return (
           <rect

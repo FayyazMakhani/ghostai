@@ -81,7 +81,8 @@ export function CanvasEdgeComponent({
       e.stopPropagation()
       if (e.key === "Escape") {
         e.preventDefault()
-        cancelRef.current = true
+        cancelRef.current = false
+        editingRef.current = false
         setEditing(false)
       } else if (e.key === "Enter") {
         e.preventDefault()
@@ -95,6 +96,17 @@ export function CanvasEdgeComponent({
     (e: React.MouseEvent | React.PointerEvent) => {
       e.stopPropagation()
       startEditing()
+    },
+    [startEditing],
+  )
+
+  const handleLabelKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault()
+        e.stopPropagation()
+        startEditing()
+      }
     },
     [startEditing],
   )
@@ -139,6 +151,9 @@ export function CanvasEdgeComponent({
 
       <EdgeLabelRenderer>
         <div
+          role="button"
+          aria-label={label ? `Edit label: ${label}` : "Add edge label"}
+          tabIndex={editing || (!label && !isActive) ? -1 : 0}
           className="nodrag nopan"
           style={{
             position: "absolute",
@@ -146,6 +161,7 @@ export function CanvasEdgeComponent({
             pointerEvents: "all",
           }}
           onDoubleClick={openEditing}
+          onKeyDown={handleLabelKeyDown}
         >
           {editing ? (
             <div
