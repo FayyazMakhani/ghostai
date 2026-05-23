@@ -11,22 +11,44 @@ import {
   Panel,
   ConnectionMode,
   type NodeTypes,
+  type EdgeTypes,
 } from "@xyflow/react"
 import { useLiveblocksFlow, Cursors } from "@liveblocks/react-flow"
+import { useUndo, useRedo } from "@liveblocks/react"
 import "@xyflow/react/dist/style.css"
 import "@liveblocks/react-flow/styles.css"
 import type { CanvasNode, CanvasEdge, ShapeDragPayload, NodeShape } from "@/types/canvas"
 import { DEFAULT_NODE_COLOR, SHAPE_DEFAULTS } from "@/types/canvas"
 import { CanvasNodeComponent } from "./canvas-node"
+import { CanvasEdgeComponent } from "./canvas-edge"
 import { ShapePanel } from "./shape-panel"
+import { CanvasControlBar } from "./canvas-control-bar"
+import { CanvasContext } from "./canvas-context"
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts"
+import { StarterTemplatesModal } from "./starter-templates-modal"
+import type { CanvasTemplate } from "./starter-templates"
 
 const nodeTypes: NodeTypes = {
   canvasNode: CanvasNodeComponent,
 }
 
+const edgeTypes: EdgeTypes = {
+  default: CanvasEdgeComponent,
+  canvasEdge: CanvasEdgeComponent,
+}
+
+const DEFAULT_EDGE_OPTIONS = {
+  type: "canvasEdge",
+} as const
+
 const MAX_NODE_DIM = 2000
 
-function CanvasFlowInner() {
+interface CanvasFlowInnerProps {
+  isTemplatesOpen: boolean
+  onTemplatesOpenChange: (open: boolean) => void
+}
+
+function CanvasFlowInner({ isTemplatesOpen, onTemplatesOpenChange }: CanvasFlowInnerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDelete } =
@@ -36,7 +58,28 @@ function CanvasFlowInner() {
       edges: { initial: [] },
     })
 
-  const { screenToFlowPosition } = useReactFlow()
+  const reactFlow = useReactFlow()
+  const { screenToFlowPosition } = reactFlow
+
+  const undo = useUndo()
+  const redo = useRedo()
+
+  useKeyboardShortcuts({ instance: reactFlow, undo, redo })
+
+  const handleImportTemplate = useCallback(
+    (template: CanvasTemplate) => {
+      if (edges.length > 0) {
+        onEdgesChange(edges.map((edge) => ({ type: "remove" as const, id: edge.id })))
+      }
+      if (nodes.length > 0) {
+        onNodesChange(nodes.map((node) => ({ type: "remove" as const, id: node.id })))
+      }
+      onNodesChange(template.nodes.map((node) => ({ type: "add" as const, item: node })))
+      onEdgesChange(template.edges.map((edge) => ({ type: "add" as const, item: edge })))
+      setTimeout(() => reactFlow.fitView({ duration: 300 }), 50)
+    },
+    [nodes, edges, onNodesChange, onEdgesChange, reactFlow],
+  )
 
   const addShapeAtCenter = useCallback(
     (shape: NodeShape) => {
@@ -101,7 +144,19 @@ function CanvasFlowInner() {
   )
 
   return (
-    <div ref={containerRef} className="h-full w-full">
+    <CanvasContext.Provider value={{ onNodesChange, onEdgesChange }}>
+    <StarterTemplatesModal
+      open={isTemplatesOpen}
+      onOpenChange={onTemplatesOpenChange}
+      onImport={handleImportTemplate}
+    />
+    <div
+      ref={containerRef}
+      className="h-full w-full"
+      // Remove React Flow's default 1 px wrapper border on all nodes. Our custom
+      // node components render their own shape-aware border via inline styles.
+      style={{ "--xy-node-border": "none" } as React.CSSProperties}
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -110,6 +165,8 @@ function CanvasFlowInner() {
         onConnect={onConnect}
         onDelete={onDelete}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
         connectionMode={ConnectionMode.Loose}
         onDragOver={onDragOver}
         onDrop={onDrop}
@@ -123,18 +180,30 @@ function CanvasFlowInner() {
           maskColor="rgba(8,8,9,0.6)"
         />
         <Cursors />
+        <Panel position="bottom-left" style={{ marginBottom: "1.5rem", marginLeft: "1rem" }}>
+          <CanvasControlBar />
+        </Panel>
         <Panel position="bottom-center" style={{ marginBottom: "1.5rem" }}>
           <ShapePanel onAddShape={addShapeAtCenter} />
         </Panel>
       </ReactFlow>
     </div>
+    </CanvasContext.Provider>
   )
 }
 
-export function CanvasFlow() {
+interface CanvasFlowProps {
+  isTemplatesOpen: boolean
+  onTemplatesOpenChange: (open: boolean) => void
+}
+
+export function CanvasFlow({ isTemplatesOpen, onTemplatesOpenChange }: CanvasFlowProps) {
   return (
     <ReactFlowProvider>
-      <CanvasFlowInner />
+      <CanvasFlowInner
+        isTemplatesOpen={isTemplatesOpen}
+        onTemplatesOpenChange={onTemplatesOpenChange}
+      />
     </ReactFlowProvider>
   )
 }
