@@ -51,5 +51,9 @@ export interface NodeData extends Record<string, unknown> {
   shape?: NodeShape
 }
 
+export interface EdgeData extends Record<string, unknown> {
+  label?: string
+}
+
 export type CanvasNode = Node<NodeData, "canvasNode">
-export type CanvasEdge = Edge<Record<string, never>, "canvasEdge">
+export type CanvasEdge = Edge<EdgeData, "canvasEdge">

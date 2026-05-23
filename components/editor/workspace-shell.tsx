@@ -28,6 +28,7 @@ export function WorkspaceShell({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isAISidebarOpen, setIsAISidebarOpen] = useState(false)
   const [isShareOpen, setIsShareOpen] = useState(false)
+  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false)
 
   const {
     dialogKind,
@@ -54,6 +55,7 @@ export function WorkspaceShell({
         isAISidebarOpen={isAISidebarOpen}
         onToggleAISidebar={() => setIsAISidebarOpen((v) => !v)}
         onShare={() => setIsShareOpen(true)}
+        onOpenTemplates={() => setIsTemplatesOpen(true)}
       />
 
       <ProjectSidebar
@@ -89,7 +91,11 @@ export function WorkspaceShell({
 
       <div className="relative flex flex-1 overflow-hidden pt-12">
         <main className="relative flex flex-1 overflow-hidden">
-          <CanvasWrapper roomId={projectId} />
+          <CanvasWrapper
+            roomId={projectId}
+            isTemplatesOpen={isTemplatesOpen}
+            onTemplatesOpenChange={setIsTemplatesOpen}
+          />
         </main>
 
         {/* AI sidebar placeholder */}
