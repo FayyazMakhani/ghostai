@@ -23,7 +23,12 @@ export async function GET(
     return Response.json({ error: "No saved canvas" }, { status: 404 })
   }
 
-  const result = await get(project.canvasJsonPath, { access: "private" })
+  let result: Awaited<ReturnType<typeof get>>
+  try {
+    result = await get(project.canvasJsonPath, { access: "private" })
+  } catch {
+    return Response.json({ error: "Failed to fetch canvas" }, { status: 502 })
+  }
   if (!result || result.statusCode !== 200) {
     return Response.json({ error: "Failed to fetch canvas" }, { status: 502 })
   }
@@ -51,7 +56,7 @@ export async function PUT(
   if (!hasAccess) return Response.json({ error: "Forbidden" }, { status: 403 })
 
   const body = await request.json().catch(() => null)
-  if (!body || typeof body !== "object") {
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
     return Response.json({ error: "Invalid body" }, { status: 400 })
   }
 
@@ -66,10 +71,15 @@ export async function PUT(
     return Response.json({ error: "Failed to save canvas" }, { status: 502 })
   }
 
-  await prisma.project.update({
-    where: { id: projectId },
-    data: { canvasJsonPath: blob.url },
-  })
+  try {
+    await prisma.project.update({
+      where: { id: projectId },
+      data: { canvasJsonPath: blob.url },
+    })
+  } catch (err) {
+    console.error("Failed to update canvasJsonPath for project", projectId, err)
+    return Response.json({ error: "Failed to record canvas save" }, { status: 500 })
+  }
 
   return Response.json({ url: blob.url })
 }

@@ -181,6 +181,8 @@ interface AISidebarProps {
 export function AISidebar({ isOpen, onClose }: AISidebarProps) {
   return (
     <aside
+      aria-hidden={!isOpen}
+      inert={!isOpen || undefined}
       className={`fixed bottom-0 right-0 top-12 z-40 flex w-80 flex-col border-l border-surface-border bg-surface/95 shadow-xl transition-transform duration-200 ease-in-out ${
         isOpen ? "translate-x-0" : "translate-x-full"
       }`}
@@ -200,6 +202,7 @@ export function AISidebar({ isOpen, onClose }: AISidebarProps) {
           variant="ghost"
           size="icon"
           onClick={onClose}
+          aria-label="Close AI sidebar"
           className="h-7 w-7 shrink-0 text-copy-muted hover:text-copy-primary"
         >
           <X className="h-4 w-4" />

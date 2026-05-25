@@ -5,7 +5,7 @@ WHERE id IN (
     SELECT id,
            ROW_NUMBER() OVER (
              PARTITION BY "ownerId", name
-             ORDER BY "createdAt" DESC
+             ORDER BY "createdAt" DESC, "id" DESC
            ) AS rn
     FROM "Project"
   ) ranked
