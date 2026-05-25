@@ -1,14 +1,18 @@
 "use client"
 
-import { Bot, LayoutTemplate, PanelLeftClose, PanelLeftOpen, Share2 } from "lucide-react"
+import { Bot, LayoutTemplate, Loader2, PanelLeftClose, PanelLeftOpen, Save, Share2, X } from "lucide-react"
 import { UserButton } from "@clerk/nextjs"
 
 import { Button } from "@/components/ui/button"
+import type { SaveStatus } from "@/hooks/use-canvas-autosave"
 
 interface EditorNavbarProps {
   isSidebarOpen: boolean
   onToggleSidebar: () => void
   projectName?: string
+  saveStatus?: SaveStatus
+  onSaveNow?: () => void
+  onDismissSaveError?: () => void
   isAISidebarOpen?: boolean
   onToggleAISidebar?: () => void
   onShare?: () => void
@@ -19,6 +23,9 @@ export function EditorNavbar({
   isSidebarOpen,
   onToggleSidebar,
   projectName,
+  saveStatus,
+  onSaveNow,
+  onDismissSaveError,
   isAISidebarOpen,
   onToggleAISidebar,
   onShare,
@@ -41,7 +48,7 @@ export function EditorNavbar({
         </Button>
       </div>
 
-      <div className="flex flex-1 items-center justify-center">
+      <div className="flex flex-1 items-center justify-center gap-2">
         {projectName && (
           <span className="text-sm font-medium text-copy-primary">
             {projectName}
@@ -50,6 +57,33 @@ export function EditorNavbar({
       </div>
 
       <div className="flex items-center gap-1">
+        {onSaveNow && (
+          <>
+            {saveStatus === "error" && (
+              <button
+                onClick={onDismissSaveError}
+                className="flex items-center gap-1 text-xs text-error hover:opacity-70"
+                aria-label="Dismiss save error"
+              >
+                <X className="h-3 w-3" />
+                Error saving
+              </button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onSaveNow}
+              disabled={saveStatus === "saving"}
+              aria-label="Save"
+            >
+              {saveStatus === "saving" ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Save className="h-5 w-5" />
+              )}
+            </Button>
+          </>
+        )}
         {onOpenTemplates && (
           <Button variant="ghost" size="icon" onClick={onOpenTemplates} aria-label="Starter templates">
             <LayoutTemplate className="h-5 w-5" />

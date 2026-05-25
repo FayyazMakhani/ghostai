@@ -61,11 +61,7 @@ export function CanvasNodeComponent({ id, data, selected }: NodeProps<CanvasNode
       onNodesChange={onNodesChange}
     />
   ) : null
-  // Connection handles are hidden while selected to avoid overlapping the
-  // edge-midpoint resize handles that appear on non-rectangular shapes.
-  const handleClass = selected
-    ? "!h-2 !w-2 !border !border-white/60 !bg-white/80 !opacity-0 !pointer-events-none !transition-opacity !duration-150"
-    : HANDLE_CLASS
+  const handleClass = HANDLE_CLASS
 
   const startEditing = useCallback(
     (initialValue?: string) => {
@@ -124,12 +120,17 @@ export function CanvasNodeComponent({ id, data, selected }: NodeProps<CanvasNode
     [editing, startEditing],
   )
 
+  // React Flow computes edge endpoints from the handle element's outer bounding box
+  // (for Position.Bottom: y + height). The default CSS centers handles on the node
+  // boundary (translate -50%, +50%), so the outer edge overshoots by half the handle
+  // height, creating a visible gap. Overriding the transform keeps each handle's outer
+  // edge flush with the node boundary so edges terminate exactly there.
   const handles = (
     <>
-      <Handle type="source" position={Position.Top} id="top" className={handleClass} />
-      <Handle type="source" position={Position.Right} id="right" className={handleClass} />
-      <Handle type="source" position={Position.Bottom} id="bottom" className={handleClass} />
-      <Handle type="source" position={Position.Left} id="left" className={handleClass} />
+      <Handle type="source" position={Position.Top} id="top" className={handleClass} style={{ transform: "translate(-50%, 0%)" }} />
+      <Handle type="source" position={Position.Right} id="right" className={handleClass} style={{ transform: "translate(0%, -50%)" }} />
+      <Handle type="source" position={Position.Bottom} id="bottom" className={handleClass} style={{ transform: "translate(-50%, 0%)" }} />
+      <Handle type="source" position={Position.Left} id="left" className={handleClass} style={{ transform: "translate(0%, -50%)" }} />
     </>
   )
 
@@ -211,8 +212,8 @@ export function CanvasNodeComponent({ id, data, selected }: NodeProps<CanvasNode
     return (
       <div
         {...sharedProps}
-        className="group relative flex h-full w-full items-center justify-center rounded-xl border outline-none"
-        style={{ background: colorPair.bg, color: colorPair.text, borderColor: border }}
+        className="group relative flex h-full w-full items-center justify-center rounded-xl outline-none"
+        style={{ background: colorPair.bg, color: colorPair.text, boxShadow: `inset 0 0 0 1px ${border}` }}
       >
         {toolbar}
         {resizer}
@@ -227,8 +228,8 @@ export function CanvasNodeComponent({ id, data, selected }: NodeProps<CanvasNode
     return (
       <div
         {...sharedProps}
-        className="group relative flex h-full w-full items-center justify-center rounded-full border outline-none"
-        style={{ background: colorPair.bg, color: colorPair.text, borderColor: border }}
+        className="group relative flex h-full w-full items-center justify-center rounded-full outline-none"
+        style={{ background: colorPair.bg, color: colorPair.text, boxShadow: `inset 0 0 0 1px ${border}` }}
       >
         {toolbar}
         {resizer}
@@ -243,8 +244,8 @@ export function CanvasNodeComponent({ id, data, selected }: NodeProps<CanvasNode
     return (
       <div
         {...sharedProps}
-        className="group relative flex h-full w-full items-center justify-center rounded-full border outline-none"
-        style={{ background: colorPair.bg, color: colorPair.text, borderColor: border }}
+        className="group relative flex h-full w-full items-center justify-center rounded-full outline-none"
+        style={{ background: colorPair.bg, color: colorPair.text, boxShadow: `inset 0 0 0 1px ${border}` }}
       >
         {toolbar}
         {resizer}

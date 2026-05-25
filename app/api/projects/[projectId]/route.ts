@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server"
+import { Prisma } from "@/app/generated/prisma/client"
 import { prisma } from "@/lib/prisma"
 
 export async function PATCH(
@@ -20,10 +21,20 @@ export async function PATCH(
   if (Object.keys(data).length === 0)
     return Response.json({ error: "no updatable fields provided" }, { status: 400 })
 
-  const { count } = await prisma.project.updateMany({
-    where: { id: projectId, ownerId: userId },
-    data,
-  })
+  let count: number
+  try {
+    ;({ count } = await prisma.project.updateMany({
+      where: { id: projectId, ownerId: userId },
+      data,
+    }))
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      const target = err.meta?.target as string[] | undefined
+      if (target?.includes("name"))
+        return Response.json({ error: "a project with that name already exists" }, { status: 409 })
+    }
+    throw err
+  }
 
   if (count === 0) {
     const exists = await prisma.project.findUnique({ where: { id: projectId } })

@@ -81,8 +81,7 @@ export function CanvasEdgeComponent({
       e.stopPropagation()
       if (e.key === "Escape") {
         e.preventDefault()
-        cancelRef.current = false
-        editingRef.current = false
+        cancelRef.current = true
         setEditing(false)
       } else if (e.key === "Enter") {
         e.preventDefault()

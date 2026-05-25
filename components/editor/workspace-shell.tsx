@@ -1,14 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useRef, useState } from "react"
 
 import { EditorNavbar } from "@/components/editor/editor-navbar"
 import { ProjectDialogs } from "@/components/editor/project-dialogs"
 import { ProjectSidebar } from "@/components/editor/project-sidebar"
 import { ShareDialog } from "@/components/editor/share-dialog"
 import { CanvasWrapper } from "@/components/editor/canvas-wrapper"
+import { AISidebar } from "@/components/editor/ai-sidebar"
 import { useProjectActions } from "@/hooks/use-project-actions"
 import type { ProjectSummary } from "@/lib/projects"
+import type { SaveStatus } from "@/hooks/use-canvas-autosave"
 
 interface WorkspaceShellProps {
   projectId: string
@@ -29,6 +31,10 @@ export function WorkspaceShell({
   const [isAISidebarOpen, setIsAISidebarOpen] = useState(false)
   const [isShareOpen, setIsShareOpen] = useState(false)
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle")
+  const saveNowRef = useRef<(() => void) | null>(null)
+  const handleRegisterSaveNow = useCallback((fn: () => void) => { saveNowRef.current = fn }, [])
+  const handleSaveNow = useCallback(() => { saveNowRef.current?.() }, [])
 
   const {
     dialogKind,
@@ -52,6 +58,9 @@ export function WorkspaceShell({
         isSidebarOpen={isSidebarOpen}
         onToggleSidebar={() => setIsSidebarOpen((v) => !v)}
         projectName={projectName}
+        saveStatus={saveStatus}
+        onSaveNow={handleSaveNow}
+        onDismissSaveError={() => setSaveStatus("idle")}
         isAISidebarOpen={isAISidebarOpen}
         onToggleAISidebar={() => setIsAISidebarOpen((v) => !v)}
         onShare={() => setIsShareOpen(true)}
@@ -95,19 +104,12 @@ export function WorkspaceShell({
             roomId={projectId}
             isTemplatesOpen={isTemplatesOpen}
             onTemplatesOpenChange={setIsTemplatesOpen}
+            onSaveStatusChange={setSaveStatus}
+            onRegisterSaveNow={handleRegisterSaveNow}
           />
         </main>
 
-        {/* AI sidebar placeholder */}
-        <aside
-          className={`fixed bottom-0 right-0 top-12 z-40 flex w-80 flex-col border-l border-surface-border bg-surface transition-transform duration-200 ease-in-out ${
-            isAISidebarOpen ? "translate-x-0" : "translate-x-full"
-          }`}
-        >
-          <div className="flex flex-1 items-center justify-center">
-            <p className="text-sm text-copy-muted">AI chat coming soon</p>
-          </div>
-        </aside>
+        <AISidebar isOpen={isAISidebarOpen} onClose={() => setIsAISidebarOpen(false)} />
       </div>
     </div>
   )

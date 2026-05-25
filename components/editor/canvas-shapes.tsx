@@ -13,9 +13,10 @@ export function DiamondSVG({ bg, border }: SvgShapeProps) {
       viewBox="0 0 100 100"
       preserveAspectRatio="none"
       className="absolute inset-0"
+      overflow="visible"
     >
       <polygon
-        points="50,2 98,50 50,98 2,50"
+        points="50,0 100,50 50,100 0,50"
         fill={bg}
         stroke={border}
         strokeWidth="1.5"
@@ -32,9 +33,10 @@ export function HexagonSVG({ bg, border }: SvgShapeProps) {
       viewBox="0 0 100 100"
       preserveAspectRatio="none"
       className="absolute inset-0"
+      overflow="visible"
     >
       <polygon
-        points="25,2 75,2 98,50 75,98 25,98 2,50"
+        points="25,0 75,0 100,50 75,100 25,100 0,50"
         fill={bg}
         stroke={border}
         strokeWidth="1.5"
