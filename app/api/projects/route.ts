@@ -43,8 +43,12 @@ export async function POST(request: Request) {
     })
     return Response.json(project, { status: 201 })
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002")
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      const target = err.meta?.target as string[] | undefined
+      if (target?.includes("name"))
+        return Response.json({ error: "a project with that name already exists" }, { status: 409 })
       return Response.json({ error: "id already in use" }, { status: 409 })
+    }
     throw err
   }
 }
