@@ -14,7 +14,7 @@ import {
   type EdgeTypes,
 } from "@xyflow/react"
 import { useLiveblocksFlow, Cursors, type CursorsCursorProps } from "@liveblocks/react-flow"
-import { useUndo, useRedo, useUpdateMyPresence, useOther } from "@liveblocks/react"
+import { useUndo, useRedo, useUpdateMyPresence, useOther, useEventListener, useMutation } from "@liveblocks/react"
 import "@xyflow/react/dist/style.css"
 import "@liveblocks/react-ui/styles.css"
 import "@liveblocks/react-flow/styles.css"
@@ -44,6 +44,16 @@ const DEFAULT_EDGE_OPTIONS = {
   type: "canvasEdge",
 } as const
 
+const GRID_SIZE = 16
+const SNAP_GRID: [number, number] = [GRID_SIZE, GRID_SIZE]
+
+function snapPosition(pos: { x: number; y: number }) {
+  return {
+    x: Math.round(pos.x / GRID_SIZE) * GRID_SIZE,
+    y: Math.round(pos.y / GRID_SIZE) * GRID_SIZE,
+  }
+}
+
 const MAX_NODE_DIM = 2000
 
 function cursorLabelColor(hex: string): string {
@@ -56,7 +66,9 @@ function cursorLabelColor(hex: string): string {
 // Compact cursor — reads name/color directly from UserMeta.info, bypassing resolveUsers.
 function CustomCursor({ connectionId }: CursorsCursorProps) {
   const info = useOther(connectionId, (o) => o.info)
+  const thinking = useOther(connectionId, (o) => o.presence.thinking)
   if (!info) return null
+  const labelColor = cursorLabelColor(info.color)
   return (
     <div style={{ position: "relative", width: 0, height: 0, pointerEvents: "none" }}>
       <svg
@@ -80,7 +92,7 @@ function CustomCursor({ connectionId }: CursorsCursorProps) {
           top: 20,
           left: 8,
           background: info.color,
-          color: cursorLabelColor(info.color),
+          color: labelColor,
           fontSize: 11,
           fontWeight: 600,
           lineHeight: 1,
@@ -88,8 +100,21 @@ function CustomCursor({ connectionId }: CursorsCursorProps) {
           borderRadius: 9999,
           whiteSpace: "nowrap",
           userSelect: "none",
+          display: "flex",
+          alignItems: "center",
+          gap: 4,
         }}
       >
+        {thinking && (
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 10 10"
+            style={{ animation: "spin 1s linear infinite", flexShrink: 0 }}
+          >
+            <circle cx="5" cy="5" r="4" fill="none" stroke={labelColor} strokeWidth="1.5" strokeDasharray="16" strokeDashoffset="6" strokeLinecap="round" />
+          </svg>
+        )}
         {info.name}
       </div>
     </div>
@@ -124,6 +149,14 @@ function CanvasFlowInner({ projectId, isTemplatesOpen, onTemplatesOpenChange, on
   const updateMyPresence = useUpdateMyPresence()
 
   useKeyboardShortcuts({ instance: reactFlow, undo, redo })
+
+  const writeFeedMessage = useMutation(({ storage }, message: string) => {
+    storage.get("ai-status-feed").push({ text: message })
+  }, [])
+
+  useEventListener(({ event }) => {
+    if (event.type === "ai-status") writeFeedMessage(event.message)
+  })
 
   const { saveStatus, saveNow } = useCanvasAutosave({ projectId, nodes, edges })
   useEffect(() => { onSaveStatusChange(saveStatus) }, [saveStatus, onSaveStatusChange])
@@ -187,7 +220,7 @@ function CanvasFlowInner({ projectId, isTemplatesOpen, onTemplatesOpenChange, on
       const rect = containerRef.current?.getBoundingClientRect()
       const cx = rect ? rect.left + rect.width / 2 : window.innerWidth / 2
       const cy = rect ? rect.top + rect.height / 2 : window.innerHeight / 2
-      const position = screenToFlowPosition({ x: cx, y: cy })
+      const position = snapPosition(screenToFlowPosition({ x: cx, y: cy }))
       const newNode: CanvasNode = {
         id: crypto.randomUUID(),
         type: "canvasNode",
@@ -230,7 +263,7 @@ function CanvasFlowInner({ projectId, isTemplatesOpen, onTemplatesOpenChange, on
         ? Math.min(payload.height, MAX_NODE_DIM)
         : 80
 
-      const position = screenToFlowPosition({ x: e.clientX, y: e.clientY })
+      const position = snapPosition(screenToFlowPosition({ x: e.clientX, y: e.clientY }))
       const id = crypto.randomUUID()
 
       const newNode: CanvasNode = {
@@ -272,6 +305,8 @@ function CanvasFlowInner({ projectId, isTemplatesOpen, onTemplatesOpenChange, on
         edgeTypes={edgeTypes}
         defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
         connectionMode={ConnectionMode.Loose}
+        snapToGrid
+        snapGrid={SNAP_GRID}
         onDragOver={onDragOver}
         onDrop={onDrop}
         onMouseMove={handleMouseMove}

@@ -54,11 +54,11 @@ export function CylinderSVG({ bg, border }: SvgShapeProps) {
       preserveAspectRatio="none"
       className="absolute inset-0"
     >
-      <rect x="1" y="10" width="98" height="80" fill={bg} stroke="none" />
-      <line x1="1" y1="10" x2="1" y2="90" stroke={border} strokeWidth="1.5" />
-      <line x1="99" y1="10" x2="99" y2="90" stroke={border} strokeWidth="1.5" />
-      <ellipse cx="50" cy="90" rx="49" ry="10" fill={bg} stroke={border} strokeWidth="1.5" />
-      <ellipse cx="50" cy="10" rx="49" ry="10" fill={bg} stroke={border} strokeWidth="1.5" />
+      <rect x="1" y="6" width="98" height="88" fill={bg} stroke="none" />
+      <line x1="1" y1="6" x2="1" y2="94" stroke={border} strokeWidth="1.5" />
+      <line x1="99" y1="6" x2="99" y2="94" stroke={border} strokeWidth="1.5" />
+      <ellipse cx="50" cy="94" rx="49" ry="6" fill={bg} stroke={border} strokeWidth="1.5" />
+      <ellipse cx="50" cy="6" rx="49" ry="6" fill={bg} stroke={border} strokeWidth="1.5" />
     </svg>
   )
 }
