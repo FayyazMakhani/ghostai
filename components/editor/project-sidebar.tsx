@@ -83,7 +83,7 @@ export function ProjectSidebar({
                       role="button"
                       tabIndex={0}
                       onClick={() => onSelectProject(project)}
-                      onKeyDown={(e) => e.key === "Enter" && onSelectProject(project)}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelectProject(project) } }}
                       className={`group flex cursor-pointer items-center gap-1 rounded-xl px-2 py-2 hover:bg-elevated ${
                         project.id === activeProjectId ? "bg-elevated" : ""
                       }`}
@@ -95,7 +95,7 @@ export function ProjectSidebar({
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          onClick={() => onRenameProject(project)}
+                          onClick={(e) => { e.stopPropagation(); onRenameProject(project) }}
                           aria-label={`Rename ${project.name}`}
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -103,7 +103,7 @@ export function ProjectSidebar({
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          onClick={() => onDeleteProject(project)}
+                          onClick={(e) => { e.stopPropagation(); onDeleteProject(project) }}
                           aria-label={`Delete ${project.name}`}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -128,7 +128,7 @@ export function ProjectSidebar({
                       role="button"
                       tabIndex={0}
                       onClick={() => onSelectProject(project)}
-                      onKeyDown={(e) => e.key === "Enter" && onSelectProject(project)}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelectProject(project) } }}
                       className={`flex cursor-pointer items-center gap-1 rounded-xl px-2 py-2 hover:bg-elevated ${
                         project.id === activeProjectId ? "bg-elevated" : ""
                       }`}

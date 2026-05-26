@@ -91,7 +91,7 @@ function resolveShape(shape: string | undefined): NodeShape {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function applyActions(root: any, actions: DesignOutput["actions"]) {
   // Cast to a usable shape — the runtime structure is guaranteed by canvas-wrapper initialStorage
-  const flow = (root as any).get("flow") as
+  let flow = (root as any).get("flow") as
     | LiveObject<{
         nodes: LiveMap<string, LiveObject<{
           id: string; type: string; position: { x: number; y: number };
@@ -106,15 +106,10 @@ function applyActions(root: any, actions: DesignOutput["actions"]) {
     | undefined
 
   if (!flow) {
-    // Storage not yet initialized — create it
-    ;(root as any).set(
-      "flow",
-      new LiveObject({
-        nodes: new LiveMap(),
-        edges: new LiveMap(),
-      })
-    )
-    return
+    // Storage not yet initialized — create it and continue applying actions
+    const newFlow = new LiveObject({ nodes: new LiveMap(), edges: new LiveMap() })
+    ;(root as any).set("flow", newFlow)
+    flow = newFlow as typeof flow
   }
 
   const nodesMap = flow.get("nodes")
@@ -148,7 +143,12 @@ function applyActions(root: any, actions: DesignOutput["actions"]) {
 
       case "move_node": {
         const node = nodesMap.get(action.id)
-        if (node) node.update({ position: { x: action.x ?? 0, y: action.y ?? 0 } })
+        if (node) {
+          const current = node.get("position")
+          const x = action.x ?? current?.x ?? 0
+          const y = action.y ?? current?.y ?? 0
+          node.update({ position: { x, y } })
+        }
         break
       }
 
@@ -306,9 +306,9 @@ Keep labels concise (2–4 words). Produce a complete, well-organized architectu
 
       return { success: true, actionsApplied: object.actions.length }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unknown error"
+      console.error("[design-agent] unhandled error:", error)
       try {
-        await broadcastStatus(lb, roomId, `Error: ${message}`)
+        await broadcastStatus(lb, roomId, "AI failed to respond, please try again")
         await setAIPresence(lb, roomId, false, 4)
       } catch {
         // Ignore cleanup errors

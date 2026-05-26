@@ -513,8 +513,14 @@ function SpecsTab({ projectId }: SpecsTabProps) {
   const loadSpecs = useCallback(() => {
     setLoading(true)
     fetch(`/api/projects/${projectId}/specs`)
-      .then((r) => r.json())
-      .then((data: { specs: SpecItem[] }) => setSpecs(data.specs ?? []))
+      .then((r) => {
+        if (!r.ok) {
+          console.error("[ai-sidebar] loadSpecs failed:", r.status)
+          setSpecs([])
+          return
+        }
+        return r.json().then((data: { specs: SpecItem[] }) => setSpecs(data.specs ?? []))
+      })
       .catch(() => setSpecs([]))
       .finally(() => setLoading(false))
   }, [projectId])
@@ -585,6 +591,11 @@ function SpecsTab({ projectId }: SpecsTabProps) {
     setModalLoading(true)
     try {
       const r = await fetch(`/api/projects/${projectId}/specs/${spec.id}`)
+      if (!r.ok) {
+        console.error("[ai-sidebar] openSpec failed:", r.status)
+        setModalContent("")
+        return
+      }
       const data = await r.json() as { content?: string }
       setModalContent(data.content ?? "")
     } catch {

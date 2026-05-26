@@ -21,14 +21,19 @@ export async function POST(request: Request) {
 
   const runId = b.runId.trim()
 
-  const taskRun = await prisma.taskRun.findUnique({ where: { runId } })
-  if (!taskRun) return Response.json({ error: "Not found" }, { status: 404 })
-  if (taskRun.userId !== identity.userId)
-    return Response.json({ error: "Forbidden" }, { status: 403 })
+  try {
+    const taskRun = await prisma.taskRun.findUnique({ where: { runId } })
+    if (!taskRun) return Response.json({ error: "Not found" }, { status: 404 })
+    if (taskRun.userId !== identity.userId)
+      return Response.json({ error: "Forbidden" }, { status: 403 })
 
-  const token = await auth.createPublicToken({
-    scopes: { read: { runs: [runId] } },
-  })
+    const token = await auth.createPublicToken({
+      scopes: { read: { runs: [runId] } },
+    })
 
-  return Response.json({ token })
+    return Response.json({ token })
+  } catch (err) {
+    console.error("[ai/design/token] unhandled error:", err)
+    return Response.json({ error: "Internal server error" }, { status: 500 })
+  }
 }

@@ -110,7 +110,8 @@ function CustomCursor({ connectionId }: CursorsCursorProps) {
             width="10"
             height="10"
             viewBox="0 0 10 10"
-            style={{ animation: "spin 1s linear infinite", flexShrink: 0 }}
+            className="animate-spin"
+            style={{ flexShrink: 0 }}
           >
             <circle cx="5" cy="5" r="4" fill="none" stroke={labelColor} strokeWidth="1.5" strokeDasharray="16" strokeDashoffset="6" strokeLinecap="round" />
           </svg>
