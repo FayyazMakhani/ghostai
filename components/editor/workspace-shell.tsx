@@ -1,6 +1,9 @@
 "use client"
 
 import { useCallback, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
+import { LiveObject, LiveMap, LiveList } from "@liveblocks/client"
+import { LiveblocksProvider, RoomProvider } from "@liveblocks/react"
 
 import { EditorNavbar } from "@/components/editor/editor-navbar"
 import { ProjectDialogs } from "@/components/editor/project-dialogs"
@@ -27,6 +30,7 @@ export function WorkspaceShell({
   ownedProjects,
   sharedProjects,
 }: WorkspaceShellProps) {
+  const router = useRouter()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isAISidebarOpen, setIsAISidebarOpen] = useState(false)
   const [isShareOpen, setIsShareOpen] = useState(false)
@@ -53,64 +57,87 @@ export function WorkspaceShell({
   } = useProjectActions(projectId)
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-base">
-      <EditorNavbar
-        isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={() => setIsSidebarOpen((v) => !v)}
-        projectName={projectName}
-        saveStatus={saveStatus}
-        onSaveNow={handleSaveNow}
-        onDismissSaveError={() => setSaveStatus("idle")}
-        isAISidebarOpen={isAISidebarOpen}
-        onToggleAISidebar={() => setIsAISidebarOpen((v) => !v)}
-        onShare={() => setIsShareOpen(true)}
-        onOpenTemplates={() => setIsTemplatesOpen(true)}
-      />
-
-      <ProjectSidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        ownedProjects={ownedProjects}
-        sharedProjects={sharedProjects}
-        activeProjectId={projectId}
-        onNewProject={openCreate}
-        onRenameProject={openRename}
-        onDeleteProject={openDelete}
-      />
-
-      <ShareDialog
-        open={isShareOpen}
-        onOpenChange={setIsShareOpen}
-        projectId={projectId}
-        isOwner={isOwner}
-      />
-
-      <ProjectDialogs
-        dialogKind={dialogKind}
-        targetProject={targetProject}
-        projectName={dialogProjectName}
-        slug={slug}
-        roomId={roomId}
-        isLoading={isLoading}
-        error={error}
-        onClose={closeDialog}
-        onProjectNameChange={setProjectName}
-        onSubmit={handleSubmit}
-      />
-
-      <div className="relative flex flex-1 overflow-hidden pt-12">
-        <main className="relative flex flex-1 overflow-hidden">
-          <CanvasWrapper
-            roomId={projectId}
-            isTemplatesOpen={isTemplatesOpen}
-            onTemplatesOpenChange={setIsTemplatesOpen}
-            onSaveStatusChange={setSaveStatus}
-            onRegisterSaveNow={handleRegisterSaveNow}
+    <LiveblocksProvider authEndpoint="/api/liveblocks-auth">
+      <RoomProvider
+        id={projectId}
+        initialPresence={{ cursor: null, thinking: false }}
+        initialStorage={() => ({
+          flow: new LiveObject({
+            nodes: new LiveMap(),
+            edges: new LiveMap(),
+          }),
+          "ai-status-feed": new LiveList([]),
+          "ai-chat": new LiveList([]),
+        })}
+      >
+        <div className="flex h-screen flex-col overflow-hidden bg-base">
+          <EditorNavbar
+            isSidebarOpen={isSidebarOpen}
+            onToggleSidebar={() => setIsSidebarOpen((v) => !v)}
+            projectName={projectName}
+            saveStatus={saveStatus}
+            onSaveNow={handleSaveNow}
+            onDismissSaveError={() => setSaveStatus("idle")}
+            isAISidebarOpen={isAISidebarOpen}
+            onToggleAISidebar={() => setIsAISidebarOpen((v) => !v)}
+            onShare={() => setIsShareOpen(true)}
+            onOpenTemplates={() => setIsTemplatesOpen(true)}
           />
-        </main>
 
-        <AISidebar isOpen={isAISidebarOpen} onClose={() => setIsAISidebarOpen(false)} />
-      </div>
-    </div>
+          <ProjectSidebar
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            ownedProjects={ownedProjects}
+            sharedProjects={sharedProjects}
+            activeProjectId={projectId}
+            onSelectProject={(project) => {
+              setIsSidebarOpen(false)
+              router.push(`/editor/${project.id}`)
+            }}
+            onNewProject={openCreate}
+            onRenameProject={openRename}
+            onDeleteProject={openDelete}
+          />
+
+          <ShareDialog
+            open={isShareOpen}
+            onOpenChange={setIsShareOpen}
+            projectId={projectId}
+            isOwner={isOwner}
+          />
+
+          <ProjectDialogs
+            dialogKind={dialogKind}
+            targetProject={targetProject}
+            projectName={dialogProjectName}
+            slug={slug}
+            roomId={roomId}
+            isLoading={isLoading}
+            error={error}
+            onClose={closeDialog}
+            onProjectNameChange={setProjectName}
+            onSubmit={handleSubmit}
+          />
+
+          <div className="relative flex flex-1 overflow-hidden pt-12">
+            <main className="relative flex flex-1 overflow-hidden">
+              <CanvasWrapper
+                projectId={projectId}
+                isTemplatesOpen={isTemplatesOpen}
+                onTemplatesOpenChange={setIsTemplatesOpen}
+                onSaveStatusChange={setSaveStatus}
+                onRegisterSaveNow={handleRegisterSaveNow}
+              />
+            </main>
+
+            <AISidebar
+              isOpen={isAISidebarOpen}
+              onClose={() => setIsAISidebarOpen(false)}
+              projectId={projectId}
+            />
+          </div>
+        </div>
+      </RoomProvider>
+    </LiveblocksProvider>
   )
 }

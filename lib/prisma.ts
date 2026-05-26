@@ -15,20 +15,17 @@ function createClient(): PrismaClient {
     return new PrismaClient({ accelerateUrl: url });
   }
 
-  // In development, reuse adapter/client or properly dispose old instances
-  if (process.env.NODE_ENV !== "production") {
-    // Disconnect existing client to close its pool/adapter
-    if (globalForPrisma.prisma) {
-      globalForPrisma.prisma.$disconnect();
-    }
-  }
-
   const adapter = new PrismaPg({ connectionString: url });
   return new PrismaClient({ adapter });
 }
 
-export const prisma = globalForPrisma.prisma ?? createClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+// In development, skip the global cache so that HMR module reloads always get a
+// fresh client with the current generated schema. Without this, the cached instance
+// predates schema changes (e.g. new models) and accessing new model delegates
+// returns undefined at runtime.
+// In production, cache on globalThis to avoid exhausting the connection pool across
+// serverless function invocations.
+export const prisma: PrismaClient =
+  process.env.NODE_ENV === "production"
+    ? (globalForPrisma.prisma ?? (globalForPrisma.prisma = createClient()))
+    : createClient();

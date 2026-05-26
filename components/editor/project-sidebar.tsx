@@ -13,6 +13,7 @@ interface ProjectSidebarProps {
   ownedProjects: ProjectSummary[]
   sharedProjects: ProjectSummary[]
   activeProjectId?: string
+  onSelectProject: (project: ProjectSummary) => void
   onNewProject: () => void
   onRenameProject: (project: ProjectSummary) => void
   onDeleteProject: (project: ProjectSummary) => void
@@ -24,16 +25,16 @@ export function ProjectSidebar({
   ownedProjects,
   sharedProjects,
   activeProjectId,
+  onSelectProject,
   onNewProject,
   onRenameProject,
   onDeleteProject,
 }: ProjectSidebarProps) {
   return (
     <>
-      {/* Mobile backdrop scrim */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/50 md:hidden"
+          className="fixed inset-0 z-30 bg-black/50"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -79,7 +80,11 @@ export function ProjectSidebar({
                   {ownedProjects.map((project) => (
                     <div
                       key={project.id}
-                      className={`group flex items-center gap-1 rounded-xl px-2 py-2 hover:bg-elevated ${
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => onSelectProject(project)}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelectProject(project) } }}
+                      className={`group flex cursor-pointer items-center gap-1 rounded-xl px-2 py-2 hover:bg-elevated ${
                         project.id === activeProjectId ? "bg-elevated" : ""
                       }`}
                     >
@@ -90,7 +95,7 @@ export function ProjectSidebar({
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          onClick={() => onRenameProject(project)}
+                          onClick={(e) => { e.stopPropagation(); onRenameProject(project) }}
                           aria-label={`Rename ${project.name}`}
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -98,7 +103,7 @@ export function ProjectSidebar({
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          onClick={() => onDeleteProject(project)}
+                          onClick={(e) => { e.stopPropagation(); onDeleteProject(project) }}
                           aria-label={`Delete ${project.name}`}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -120,7 +125,11 @@ export function ProjectSidebar({
                   {sharedProjects.map((project) => (
                     <div
                       key={project.id}
-                      className={`flex items-center gap-1 rounded-xl px-2 py-2 hover:bg-elevated ${
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => onSelectProject(project)}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelectProject(project) } }}
+                      className={`flex cursor-pointer items-center gap-1 rounded-xl px-2 py-2 hover:bg-elevated ${
                         project.id === activeProjectId ? "bg-elevated" : ""
                       }`}
                     >

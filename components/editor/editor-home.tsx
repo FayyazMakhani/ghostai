@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -16,6 +17,7 @@ interface EditorHomeProps {
 }
 
 export function EditorHome({ ownedProjects, sharedProjects }: EditorHomeProps) {
+  const router = useRouter()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   const {
@@ -45,6 +47,7 @@ export function EditorHome({ ownedProjects, sharedProjects }: EditorHomeProps) {
         onClose={() => setIsSidebarOpen(false)}
         ownedProjects={ownedProjects}
         sharedProjects={sharedProjects}
+        onSelectProject={(project) => router.push(`/editor/${project.id}`)}
         onNewProject={openCreate}
         onRenameProject={openRename}
         onDeleteProject={openDelete}

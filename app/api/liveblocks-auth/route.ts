@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   await lb.getOrCreateRoom(room, { defaultAccesses: [] });
 
   const name =
-    user.fullName ?? user.firstName ?? user.username ?? "Anonymous";
+    user.fullName ?? user.firstName ?? user.username ?? email ?? "Anonymous";
   const avatar = user.imageUrl;
   const color = getUserColor(userId);
 
