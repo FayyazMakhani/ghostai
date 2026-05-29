@@ -109,11 +109,12 @@ function applyActions(root: any, actions: DesignOutput["actions"]) {
     // Storage not yet initialized — create it and continue applying actions
     const newFlow = new LiveObject({ nodes: new LiveMap(), edges: new LiveMap() })
     ;(root as any).set("flow", newFlow)
-    flow = newFlow as typeof flow
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    flow = newFlow as any
   }
 
-  const nodesMap = flow.get("nodes")
-  const edgesMap = flow.get("edges")
+  const nodesMap = flow!.get("nodes")
+  const edgesMap = flow!.get("edges")
 
   if (!nodesMap || !edgesMap) return
 
